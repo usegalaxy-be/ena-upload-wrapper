@@ -1,0 +1,37 @@
+<tool id="ena_upload" name="ENA Upload tool" version="0.1.0" python_template_version="3.5">
+    <token name="@VERSION@">0.1</token>   
+    <requirements>
+      <requirement type="package" version="@VERSION@">ena-upload-cli</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+        python_call_name
+        --action $action
+        --center $center
+        --webin_id $webin_id
+        --password $password
+        if $action == 'add':
+            --data $data
+            --experiment $experiment
+    ]]></command>
+<inputs>
+       <conditional name="action_options">
+            <param argument="--action" type="select" label="Action to execute">
+                <option value="add" selected="True">Add new data</option>
+                <option value="modify">Modify metadata</option>
+            </param>
+            <when value="add">
+                <param argument="--data" type="data" format="fastq.gz" multiple="true" label="Datasets to upload" help="fasta dataset to get statistics for."/>
+                <param argument="--experiment" type="data" format="tabular" multiple="true" label="Datasets to upload" help="fasta dataset to get statistics for."/>
+            </when>
+        </conditional>
+        <param argument="--center" type="text" format="text" optional="False" label="File with IDs to cluster, one per line"/>
+        <param argument="--webin_id" type="text" format="text" optional="False" label="File with IDs to cluster, one per line"/>
+        <param argument="--password" type="hidden" format="text" optional="False" label="File with IDs to cluster, one per line"/>
+    </inputs>
+    <outputs>
+        <data name="output" format="data" label="${tool.name} on ${on_string}: Upload summary"/>
+    </outputs>
+    <help><![CDATA[
+        TODO: Fill in help.
+    ]]></help>
+</tool>
