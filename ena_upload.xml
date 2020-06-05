@@ -12,6 +12,9 @@
         if $action == 'add':
             --data $data
             --experiment $experiment
+            --study $study
+            --run $run
+            --sample $sample
     ]]></command>
 <inputs>
        <conditional name="action_options">
@@ -21,12 +24,15 @@
             </param>
             <when value="add">
                 <param argument="--data" type="data" format="fastq.gz" multiple="true" label="Datasets to upload" help="fasta dataset to get statistics for."/>
-                <param argument="--experiment" type="data" format="tabular" multiple="true" label="Datasets to upload" help="fasta dataset to get statistics for."/>
+                <param argument="--experiment" type="data" format="tabular" multiple="true" label="Datasets to upload" help="Meta-data of the experiment"/>
+                <param argument="--study" type="data" format="tabular" multiple="true" label="Datasets to upload" help="Meta-data of the studies"/>
+                <param argument="--run" type="data" format="tabular" multiple="true" label="Datasets to upload" help="Meta-data of the runs"/>
+                <param argument="--sample" type="data" format="tabular" multiple="true" label="Datasets to upload" help="Meta-data of the samples"/>
             </when>
         </conditional>
-        <param argument="--center" type="text" format="text" optional="False" label="File with IDs to cluster, one per line"/>
-        <param argument="--webin_id" type="text" format="text" optional="False" label="File with IDs to cluster, one per line"/>
-        <param argument="--password" type="hidden" format="text" optional="False" label="File with IDs to cluster, one per line"/>
+        <param argument="--center" type="text" format="text" optional="False" label="Center used in your ENA account."/>
+        <param argument="--webin_id" type="text" format="text" optional="False" label="Webin_id linked to your ENA account."/>
+        <param argument="--password" type="hidden" format="text" optional="False" label="Password linked to your ENA account."/>
     </inputs>
     <outputs>
         <data name="output" format="data" label="${tool.name} on ${on_string}: Upload summary"/>
