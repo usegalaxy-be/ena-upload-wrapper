@@ -2,13 +2,17 @@
     <token name="@VERSION@">0.1</token>   
     <requirements>
       <requirement type="package" version="@VERSION@">ena-upload-cli</requirement>
-    </requirements>
+  </requirements>
+  <environment_variables>
+      <environment_variable name="WEBIN_ID">$webin_id</environment_variable>
+      <environment_variable name="ENA_PASS">$ena_pass</environment_variable>
+  </environment_variables>
     <command detect_errors="exit_code"><![CDATA[
         ena-upload-cli
         --action $action
         --center $center
         --webin_id $webin_id
-        --password $password
+        --password $ena_pass
         if $action == 'add':
             --data $data
             --experiment $experiment
@@ -31,8 +35,6 @@
             </when>
         </conditional>
         <param argument="--center" type="text" format="text" optional="False" label="Affiliation center"/>
-        <param argument="--webin_id" type="text" format="text" optional="False" label="Web access ID"/>
-        <param argument="--password" type="hidden" format="text" optional="False" label=""/>
     </inputs>
     <outputs>
         <data name="output" format="data" label="${tool.name} on ${on_string}: Upload summary"/>
