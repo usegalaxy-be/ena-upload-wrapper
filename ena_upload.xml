@@ -35,14 +35,42 @@ ena-upload-cli
                 <param argument="--run" type="data" format="tabular" multiple="false" label="Datasets to upload" help="Run metadata file"/>
                 <param argument="--sample" type="data" format="tabular" multiple="false" label="Datasets to upload" help="Sample metadata file"/>
 				<repeat name="rep_study" title="Study" min="1">
-					<param name="study_name" type="text" label="Specify the name of the study"/>
+                    <param name="study_title" type="text" optional="False" label="Please provide a short descriptive title for the study"/>
+                    <param name="study_abstract" type="text" optional="True" label="Please provide an abstract to describe the study in detail"/>
+                    <param name="study_type" type="select" label="Please select the type of study">
+                            <options from_file="study_type.txt">
+                                <column name="value" index="0"/>
+                    </param>
 					<repeat name="rep_experiment" title="Experiment" min="1" >
-                        <param name="experiment" type="text" label="Specify an experiment name" help="Only letters, numbers and underscores will be retained in this field"/>
-                        <param name="library_source" type="select" label="Select library source" help="If your source is not listed, contact the Galaxy team">
-                            <options from_file="library_sources.txt">
+                        <param name="experiment" type="text" label="Specify an experiment name" />
+                        <param name="library_strategy" type="select" label="Library strategy" help="The library strategy specifies the sequencing technique intended for this library">
+                            <options from_file="library_strategy.txt">
                                 <column name="value" index="0"/>
                             </options>
                         </param>
+                        <param name="library_source" type="select" label="Select library source" help="The library source specifies the type of source material that is being sequenced">
+                            <options from_file="library_source.txt">
+                                <column name="value" index="0"/>
+                            </options>
+                        </param>
+                        <param name="library_selection" type="select" label="Library selection" help="The library selection specifies whether any method was used to select for or against, enrich, or screen the material being sequenced">
+                            <options from_file="library_selection.txt">
+                                <column name="value" index="0"/>
+                            </options>
+                        </param>
+                        <param name="library_layout" type="select" label="Library layout">
+                            <options from_file="library_layout.txt">
+                                <column name="value" index="0"/>
+                            </options>
+                        </param>
+                        <param name="instrument_model" type="select" label="Instrument model">
+                            <options from_file="instrument_model.txt">
+                                <column name="value" index="0"/>
+                            </options>
+                        </param>
+
+                        <!--TODO: MISSING insert_size,library_construction_protocol, platform-->
+                        
                         <param name="sample_sname" type="text" default="homo sapiens" label="Organism of the sample"/>
                         <param name="sample_description" type="text" default="liver cells" label="Describe the type of sample"/>
 						<param name="upload_files" type="data" format="fastqsanger.gz,fastqsanger.bz2" multiple="true" label="File(s) to upload"/>
