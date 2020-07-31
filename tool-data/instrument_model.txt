@@ -1,4 +1,4 @@
-inION
+minION
 GridION
 PromethION
 454 GS

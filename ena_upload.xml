@@ -6,22 +6,76 @@
     <requirement type="package" version="@VERSION@">ena-upload-cli</requirement>
   </requirements>
   <command detect_errors="exit_code"><![CDATA[
-#import os
+cwd=\$(pwd);
 #set webin_id = os.environ.get('WEBIN_ID', None)
 #set webin_pass = os.environ.get('WEBIN_PASS', None)
-ena-upload-cli
-    --action $action_options.action
-    --center $center
-    --webin_id $webin_id
-    --password $webin_pass
-    #if $action_options.action == 'add':
-        --data $action_options.data
-        --experiment $action_options.experiment
-        --study $action_options.study
-        --run $action_options.run
-        --sample $action_options.sample
-    #end if
+          
+#if $action_options.input_format_conditional.input_format == "build_tables":
+  python $__tool_directory__/extract_tables.py --out_dir \$cwd --studies $studies_json;
+  #set $studies_table_path = "$cwd/studies.tsv"
+  #set $samples_table_path = "$cwd/samples.tsv"
+  #set $experiments_table_path = "$cwd/experiments.tsv"
+  #set $runs_table_path = "$cwd/runs.tsv"
+#end if
+#if $action_options.input_format_conditional.print_tables:
+    cp $studies_table_path $studies_table_out;
+    cp $samples_table_path $samples_table_out;
+    cp $experiments_table_path $experiments_table_out;
+    cp $runs_table_path $runs_table_out;
+#end if
+
+
+## create the list of files to upload and make the symlinks 
+#set $files_to_upload = list()
+#for $study in $action_options.input_format_conditional.rep_study:
+  #for $sample in $study.rep_sample:
+    #for $experiment in $sample.rep_experiment:
+      #for $file in $experiment.upload_files:
+            ln -s $file $file.element_identifier;
+            $files_to_upload.append(str($file.element_identifier))
+      #end for
+    #end for
+  #end for
+#end for
+
+##ena-upload-cli
+##    --action 'add'
+##    --center $center
+##    --webin_id $webin_id
+##    --password $webin_pass
+##    --data
+##    #for $dataset in $files_to_upload:
+##      $dataset
+##    --experiment $experiments_table
+##    --study $studies_table
+##    --run $runs_table
+##    --sample $samples_table
     ]]></command>
+    <configfiles>
+    <configfile name="studies_json">
+#import json
+#if $action_options.input_format_conditional.input_format == "build_tables":
+  #set $files_to_upload = list()
+  #set $studies = list()
+  #for $study in $action_options.input_format_conditional.rep_study:
+    #set samples = list()
+    #for $sample in $study.rep_sample:
+      #set experiments = list()
+      #for $experiment in $sample.rep_experiment:
+        #set runs = list()
+        #for $file in $experiment.upload_files:
+              $runs.append(str($file.element_identifier))
+        #end for
+        $experiments.append({'title':str($experiment.experiment_title),'experiment_design':str($experiment.experiment_design),'library_strategy':str($experiment.library_strategy),'library_source':str($experiment.library_source),'library_selection':str($experiment.library_strategy),'library_layout':str($experiment.library_layout),'insert_size':str($experiment.insert_size),'library_construction_protocol':str($experiment.library_construction_protocol),'platform':str($experiment.platform),'instrument_model':str($experiment.instrument_model),'files':$runs})
+      #end for
+      $samples.append({'title':str($sample.sample_title),'description':str($sample.sample_description),'experiments':$experiments})
+    #end for
+    $studies.append({'title':str($study.study_title),'samples':$samples})
+  #end for
+  #echo $json.dumps($studies)
+#end if
+        </configfile>
+    </configfiles>
 <inputs>
        <conditional name="action_options">
             <param argument="--action" type="select" label="Action to execute">
@@ -29,60 +83,103 @@ ena-upload-cli
                 <option value="modify">Modify metadata</option>
             </param>
             <when value="add">
-                <param argument="--data" type="data" format="fastq.gz" multiple="true" label="Datasets to upload" help="fastq.gz data to upload"/>
-                <param argument="--experiment" type="data" format="tabular" multiple="false" label="Metadata" help="Experiment metadata file"/>
-                <param argument="--study" type="data" format="tabular" multiple="false" label="Metadata" help="Study metadata file"/>
-                <param argument="--run" type="data" format="tabular" multiple="false" label="Datasets to upload" help="Run metadata file"/>
-                <param argument="--sample" type="data" format="tabular" multiple="false" label="Datasets to upload" help="Sample metadata file"/>
-				<repeat name="rep_study" title="Study" min="1">
-                    <param name="study_title" type="text" optional="False" label="Please provide a short descriptive title for the study"/>
-                    <param name="study_abstract" type="text" optional="True" label="Please provide an abstract to describe the study in detail"/>
-                    <param name="study_type" type="select" label="Please select the type of study">
-                            <options from_file="study_type.txt">
-                                <column name="value" index="0"/>
-                    </param>
-					<repeat name="rep_experiment" title="Experiment" min="1" >
-                        <param name="experiment" type="text" label="Specify an experiment name" />
-                        <param name="library_strategy" type="select" label="Library strategy" help="The library strategy specifies the sequencing technique intended for this library">
-                            <options from_file="library_strategy.txt">
-                                <column name="value" index="0"/>
-                            </options>
-                        </param>
-                        <param name="library_source" type="select" label="Select library source" help="The library source specifies the type of source material that is being sequenced">
-                            <options from_file="library_source.txt">
-                                <column name="value" index="0"/>
-                            </options>
-                        </param>
-                        <param name="library_selection" type="select" label="Library selection" help="The library selection specifies whether any method was used to select for or against, enrich, or screen the material being sequenced">
-                            <options from_file="library_selection.txt">
-                                <column name="value" index="0"/>
-                            </options>
-                        </param>
-                        <param name="library_layout" type="select" label="Library layout">
-                            <options from_file="library_layout.txt">
-                                <column name="value" index="0"/>
-                            </options>
-                        </param>
-                        <param name="instrument_model" type="select" label="Instrument model">
-                            <options from_file="instrument_model.txt">
-                                <column name="value" index="0"/>
-                            </options>
-                        </param>
-
-                        <!--TODO: MISSING insert_size,library_construction_protocol, platform-->
-                        
-                        <param name="sample_sname" type="text" default="homo sapiens" label="Organism of the sample"/>
-                        <param name="sample_description" type="text" default="liver cells" label="Describe the type of sample"/>
-						<param name="upload_files" type="data" format="fastqsanger.gz,fastqsanger.bz2" multiple="true" label="File(s) to upload"/>
-					</repeat>
-				</repeat>
-
+                <conditional name="input_format_conditional">
+                    <param name="input_format" type="select" label="Would you like to submit pregenerated table files or interactively define the input structures?">
+                        <option value="user_generated_tables" selected="True">User generated tables of studies/experiments/runs/samples</option>
+                        <option value="build_tables" selected="False">Interactive generation of studies structure from dataset</option>
+                    </param>    
+                    <when value="user_generated_tables">
+                        <param argument="--data" type="data" format="fastq.gz" multiple="true" label="Datasets to upload" help="fastq.gz data to upload"/>
+                        <param argument="--experiment" type="data" format="tabular" multiple="false" label="Metadata" help="Experiment metadata file"/>
+                        <param argument="--study" type="data" format="tabular" multiple="false" label="Metadata" help="Study metadata file"/>
+                        <param argument="--run" type="data" format="tabular" multiple="false" label="Datasets to upload" help="Run metadata file"/>
+                        <param argument="--sample" type="data" format="tabular" multiple="false" label="Datasets to upload" help="Sample metadata file"/>
+                    </when>
+                    <when value="build_tables">
+                        <param name="print_tables" type="boolean" label="Print also the tables used for submission"/>
+                        <repeat name="rep_study" title="Study" min="1">
+                            <param name="study_title" type="text" optional="False" label="Please provide a short descriptive title for the study"/>
+                            <param name="study_abstract" type="text" optional="True" label="Please provide an abstract to describe the study in detail"/>
+                            <param name="study_type" type="select" label="Please select the type of study">
+                                    <options from_file="study_type.txt">
+                                        <column name="value" index="0"/>
+                                    </options>
+                            </param>
+                            <param name="study_pubmed_id" type="text" optional="True" value="" label="Please provide the PubMed id if exists (or leave it blank)"/>
+                            <repeat name="rep_sample" title="Samples associated with this study" min="1" >
+                                <param name="sample_title" type="text" default="Blood sample" label="Sample title"/>
+                                <param name="sample_description" type="text" default="liver cells" label="Describe the type of sample"/>
+                                <param name="scientific_name" type="text" default="Homo Sapiens" label="Enter the species of the sample" help=""/>
+                                <param name="tax_id" type="text" label="Enter the taxonomic ID corresponding to the sample species" help=""/>
+                                <repeat name="rep_experiment" title="Sequencing experiments performed with this sample" min="1" >
+                                    <param name="experiment_title" type="text" label="Specify an experiment title" />
+                                    <param name="experiment_design" type="text" label="Describe the experiment design" />
+                                    <param name="library_strategy" type="select" label="Library strategy" help="The library strategy specifies the sequencing technique intended for this library">
+                                        <options from_file="library_strategy.txt">
+                                            <column name="value" index="0"/>
+                                        </options>
+                                    </param>
+                                    <param name="library_source" type="select" label="Select library source" help="The library source specifies the type of source material that is being sequenced">
+                                        <options from_file="library_source.txt">
+                                            <column name="value" index="0"/>
+                                        </options>
+                                    </param>
+                                    <param name="library_selection" type="select" label="Library selection" help="The library selection specifies whether any method was used to select for or against, enrich, or screen the material being sequenced">
+                                        <options from_file="library_selection.txt">
+                                            <column name="value" index="0"/>
+                                        </options>
+                                    </param>
+                                    <param name="library_layout" type="select" label="Library layout">
+                                        <options from_file="library_layout.txt">
+                                            <column name="value" index="0"/>
+                                        </options>
+                                    </param>
+                                    <param name="insert_size" type="integer" value="0" label="Specify the insert size"/>
+                                    <param name="library_construction_protocol" type="text" label="Please describe the library construction protocol"/>
+                                    <param name="platform" type="select" label="Select the sequencing platform used">
+                                        <option value="LS454">LS454</option>
+                                        <option value="ILLUMINA">Illumina</option>
+                                        <option value="HELICOS">Helicos</option>
+                                        <option value="ABI_SOLID">ABI Solid</option>
+                                        <option value="COMPLETE_GENOMICS">Complete Genomics</option>
+                                        <option value="BGISEQ">BGI Seq</option>
+                                        <option value="OXFORD_NANOPORE">Oxford Nanopore</option>
+                                        <option value="PACBIO_SMRT">PacBio</option>
+                                        <option value="ION_TORRENT">Ion Torrent</option>
+                                        <option value="CAPILLARY">Capillary sequencing</option>
+                                    </param>
+                                    <param name="instrument_model" type="select" label="Instrument model">
+                                        <options from_file="instrument_model.txt">
+                                            <column name="value" index="0"/>
+                                        </options>
+                                    </param>
+                                    <param name="upload_files" type="data" format="fastqsanger.gz,fastqsanger.bz2" multiple="true" label="File(s) associated with this sample"/>
+                                </repeat>
+                            </repeat>
+                        </repeat>
+                    </when>
+                </conditional>
+            <param argument="--center" type="text" format="text" optional="False" label="Affiliation center"/>
+            </when>
+            <when value="modify">
+                <param name="modify_first" type="text" label="Mofification of submitted data is not yet possible"/>
             </when>
         </conditional>
-        <param argument="--center" type="text" format="text" optional="False" label="Affiliation center"/>
     </inputs>
     <outputs>
         <data name="output" format="data" label="${tool.name} on ${on_string}: Upload summary"/>
+        <data name="studies_table_out" format="tabular" label="Studies table">
+            <filter> action_options['input_format_conditional']['print_tables'] == True </filter>
+        </data>
+        <data name="samples_table_out" format="tabular" label="Samples table">
+            <filter> action_options['input_format_conditional']['print_tables'] == True </filter>
+        </data>
+        <data name="experiments_table_out" format="tabular" label="Experiments table">
+            <filter> action_options['input_format_conditional']['print_tables'] == True </filter>
+        </data>
+        <data name="runs_table_out" format="tabular" label="Runs table">
+            <filter> action_options['input_format_conditional']['print_tables'] == True </filter>
+        </data>
     </outputs>
     <help><![CDATA[
         TODO: Fill in help.
