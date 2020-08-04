@@ -34,9 +34,13 @@ for study_index, study in enumerate(studies_dict):
             exp_alias = 'experiment_'+str(exp_index)+'_'+str(sample_index)
             lib_alias = 'library_'+str(exp_index)+'_'+str(sample_index)
             experiments_table.write('\t'.join([exp_alias,action,'accession_ena',exp['title'],study_alias,sample_alias,exp['experiment_design'],lib_alias,exp['library_strategy'],exp['library_source'],exp['library_selection'],exp['library_layout'],exp['insert_size'],exp['library_construction_protocol'],exp['platform'],exp['instrument_model'],'submission_date_ENA']) + '\n')
-            for run_file in exp['files']:
-                run_alias = 'run_'+str(exp_index) +'_'+str(sample_index)
-                runs_table.write('\t'.join([run_alias,action,'ena_run_accession',exp_alias,run_file,'****file_format','file_checksum','submission_date_ENA']) + '\n')
+            run_index = 0
+            # exp['runs'] is a list of lists
+            for run in exp['runs']:
+                run_index += 1
+                run_alias = '_'.join(['run',str(exp_index),str(sample_index),str(run_index)])
+                for file_entry in run:
+                    runs_table.write('\t'.join([run_alias,action,'ena_run_accession',exp_alias,file_entry,'****file_format','file_checksum','submission_date_ENA']) + '\n')
 
 studies_table.close()
 samples_table.close()
