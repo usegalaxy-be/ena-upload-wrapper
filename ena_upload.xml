@@ -17,7 +17,7 @@ cwd=\$(pwd);
   #set $experiments_table_path = "$cwd/experiments.tsv"
   #set $runs_table_path = "$cwd/runs.tsv"
 #end if
-#if $action_options.input_format_conditional.print_tables:
+#if $action_options.input_format_conditional.dry_run:
     cp $studies_table_path $studies_table_out;
     cp $samples_table_path $samples_table_out;
     cp $experiments_table_path $experiments_table_out;
@@ -30,14 +30,17 @@ cwd=\$(pwd);
 #for $study in $action_options.input_format_conditional.rep_study:
   #for $sample in $study.rep_sample:
     #for $experiment in $sample.rep_experiment:
-      #for $file in $experiment.upload_files:
+      #for $run in $experiment.rep_runs:
+        #for $file in $run.upload_files:
             ln -s $file $file.element_identifier;
             $files_to_upload.append(str($file.element_identifier))
+        #end for
       #end for
     #end for
   #end for
 #end for
 
+## #if not $action_options.input_format_conditional.dry_run:
 ##ena-upload-cli
 ##    --action 'add'
 ##    --center $center
@@ -50,6 +53,7 @@ cwd=\$(pwd);
 ##    --study $studies_table
 ##    --run $runs_table
 ##    --sample $samples_table
+##    #if $action_options.input_format_conditional.submit_dev:
     ]]></command>
     <configfiles>
     <configfile name="studies_json">
@@ -63,10 +67,14 @@ cwd=\$(pwd);
       #set experiments = list()
       #for $experiment in $sample.rep_experiment:
         #set runs = list()
-        #for $file in $experiment.upload_files:
-              $runs.append(str($file.element_identifier))
+        #for $run in $experiment.rep_runs:
+            #set run_files = list()
+            #for $file in $run.upload_files:
+              $run_files.append(str($file.element_identifier))
+            #end for
+            $runs.append($run_files) 
         #end for
-        $experiments.append({'title':str($experiment.experiment_title),'experiment_design':str($experiment.experiment_design),'library_strategy':str($experiment.library_strategy),'library_source':str($experiment.library_source),'library_selection':str($experiment.library_strategy),'library_layout':str($experiment.library_layout),'insert_size':str($experiment.insert_size),'library_construction_protocol':str($experiment.library_construction_protocol),'platform':str($experiment.platform),'instrument_model':str($experiment.instrument_model),'files':$runs})
+        $experiments.append({'title':str($experiment.experiment_title),'experiment_design':str($experiment.experiment_design),'library_strategy':str($experiment.library_strategy),'library_source':str($experiment.library_source),'library_selection':str($experiment.library_strategy),'library_layout':str($experiment.library_layout),'insert_size':str($experiment.insert_size),'library_construction_protocol':str($experiment.library_construction_protocol),'platform':str($experiment.platform),'instrument_model':str($experiment.instrument_model),'runs':$runs})
       #end for
       $samples.append({'title':str($sample.sample_title),'description':str($sample.sample_description),'experiments':$experiments})
     #end for
@@ -83,6 +91,7 @@ cwd=\$(pwd);
                 <option value="modify">Modify metadata</option>
             </param>
             <when value="add">
+                <param name="submit_dev" type="boolean" label="Submit to test ENA server?"/>
                 <conditional name="input_format_conditional">
                     <param name="input_format" type="select" label="Would you like to submit pregenerated table files or interactively define the input structures?">
                         <option value="user_generated_tables" selected="True">User generated tables of studies/experiments/runs/samples</option>
@@ -96,7 +105,7 @@ cwd=\$(pwd);
                         <param argument="--sample" type="data" format="tabular" multiple="false" label="Datasets to upload" help="Sample metadata file"/>
                     </when>
                     <when value="build_tables">
-                        <param name="print_tables" type="boolean" label="Print also the tables used for submission"/>
+                        <param name="dry_run" type="boolean" label="Print the tables but do not submit the datasets"/>
                         <repeat name="rep_study" title="Study" min="1">
                             <param name="study_title" type="text" optional="False" label="Please provide a short descriptive title for the study"/>
                             <param name="study_abstract" type="text" optional="True" label="Please provide an abstract to describe the study in detail"/>
@@ -153,7 +162,9 @@ cwd=\$(pwd);
                                             <column name="value" index="0"/>
                                         </options>
                                     </param>
-                                    <param name="upload_files" type="data" format="fastqsanger.gz,fastqsanger.bz2" multiple="true" label="File(s) associated with this sample"/>
+                                    <repeat name="rep_runs" title="Runs executed within this experiment" min="1" >
+                                        <param name="upload_files" type="data" format="fastqsanger.gz,fastqsanger.bz2" multiple="true" label="File(s) associated with this run"/>
+                                    </repeat>
                                 </repeat>
                             </repeat>
                         </repeat>
@@ -169,16 +180,16 @@ cwd=\$(pwd);
     <outputs>
         <data name="output" format="data" label="${tool.name} on ${on_string}: Upload summary"/>
         <data name="studies_table_out" format="tabular" label="Studies table">
-            <filter> action_options['input_format_conditional']['print_tables'] == True </filter>
+            <filter> action_options['input_format_conditional']['dry_run'] == True </filter>
         </data>
         <data name="samples_table_out" format="tabular" label="Samples table">
-            <filter> action_options['input_format_conditional']['print_tables'] == True </filter>
+            <filter> action_options['input_format_conditional']['dry_run'] == True </filter>
         </data>
         <data name="experiments_table_out" format="tabular" label="Experiments table">
-            <filter> action_options['input_format_conditional']['print_tables'] == True </filter>
+            <filter> action_options['input_format_conditional']['dry_run'] == True </filter>
         </data>
         <data name="runs_table_out" format="tabular" label="Runs table">
-            <filter> action_options['input_format_conditional']['print_tables'] == True </filter>
+            <filter> action_options['input_format_conditional']['dry_run'] == True </filter>
         </data>
     </outputs>
     <help><![CDATA[
