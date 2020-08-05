@@ -13,7 +13,7 @@ Illumina Genome Analyzer IIx
 Illumina HiSeq 1000
 Illumina HiSeq 1500
 Illumina HiSeq 2000
-Illumina HiSeq 2500" selected="selected
+Illumina HiSeq 2500
 Illumina HiSeq 3000
 Illumina HiSeq 4000
 Illumina iSeq 100

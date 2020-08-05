@@ -8,8 +8,9 @@
   <command detect_errors="exit_code"><![CDATA[
 cwd=\$(pwd);
 #set webin_id = os.environ.get('WEBIN_ID', None)
-#set webin_pass = os.environ.get('WEBIN_PASS', None)
+#set webin_secret = os.environ.get('WEBIN_SECRET', None)
 #set working_dir = os.getcwd()   
+#set $dry_run_option = "False"
 #if $action_options.input_format_conditional.input_format == "build_tables":
   python $__tool_directory__/extract_tables.py --out_dir \$cwd --studies $studies_json;
   #set $studies_table_path = "$cwd/studies.tsv"
@@ -17,40 +18,53 @@ cwd=\$(pwd);
   #set $experiments_table_path = "$cwd/experiments.tsv"
   #set $runs_table_path =  "$cwd/runs.tsv"
 #end if
-#if $action_options.input_format_conditional.dry_run:
+
+#if $action_options.input_format_conditional.input_format != "user_generated_tables":
     cp $studies_table_path $studies_table_out;
     cp $samples_table_path $samples_table_out;
     cp $experiments_table_path $experiments_table_out;
     cp $runs_table_path $runs_table_out;
+    #if $action_options.input_format_conditional.dry_run == "true":
+      #set $dry_run_option = "True"
+    #end if
 #end if
+
 
 
 ## create the list of files to upload and make the symlinks 
 #set $files_to_upload = list()
-#for $study in $action_options.input_format_conditional.rep_study:
-  #for $sample in $study.rep_sample:
-    #for $experiment in $sample.rep_experiment:
-      #for $run in $experiment.rep_runs:
-        #for $file in $run.upload_files:
-            ln -s $file $file.element_identifier;
-            $files_to_upload.append(str($file.element_identifier))
+#if $action_options.input_format_conditional.input_format == "build_tables":
+    #for $study in $action_options.input_format_conditional.rep_study:
+      #for $sample in $study.rep_sample:
+        #for $experiment in $sample.rep_experiment:
+          #for $run in $experiment.rep_runs:
+            #for $file in $run.upload_files:
+                ln -s $file $file.element_identifier;
+                $files_to_upload.append(str($file.element_identifier))
+            #end for
+          #end for
         #end for
       #end for
     #end for
-  #end for
-#end for
+#else:
+    #for $file in $action_options.input_format_conditional.data:
+        ln -s $file $file.element_identifier;
+        $files_to_upload.append(str($file.element_identifier))
+    #end for
+#end if
 
-#if $action_options.input_format_conditional.dry_run == "false":
+
+#if $dry_run_option == "False":
 ena-upload-cli
     --action 'add'
-    --center $action_options.center
+    --center '$action_options.center'
     --webin_id '$webin_id'
-    --password '$webin_pass'
+    --secret '$webin_secret'
     --data
     #for $dataset in $files_to_upload:
       $dataset
     #end for
-#if $action_options.input_format_conditional == "user_generated_tables":
+#if $action_options.input_format_conditional.input_format == "user_generated_tables":
     --experiment $action_options.input_format_conditional.experiments_users_table
     --study $action_options.input_format_conditional.studies_users_table
     --run $action_options.input_format_conditional.runs_users_table
@@ -111,11 +125,11 @@ ena-upload-cli
                         <option value="build_tables" selected="False">Interactive generation of studies structure from dataset</option>
                     </param>    
                     <when value="user_generated_tables">
-                        <param name="data" type="data" format="fastq.gz" multiple="true" label="Select all datasets to upload" help="Compressed reads files listed in the runs table"/>
-                        <param name="experiments_users_table" type="data" format="tabular" multiple="false" label="Metadata" help="Experiment metadata file"/>
-                        <param name="studies_users_table" type="data" format="tabular" multiple="false" label="Metadata" help="Study metadata file"/>
-                        <param name="runs_users_table" type="data" format="tabular" multiple="false" label="Datasets to upload" help="Run metadata file"/>
-                        <param name="samples_users_table" type="data" format="tabular" multiple="false" label="Datasets to upload" help="Sample metadata file"/>
+                        <param name="data" type="data" format="fastqsanger.gz,fastqsanger.bz2,fastq.gz,fastq.bz2" multiple="true" label="Select all datasets to upload" help="Compressed reads files listed in the runs table"/>
+                        <param name="studies_users_table" type="data" format="tabular" multiple="false" label="Studies table" help="Studies metadata file"/>
+                        <param name="samples_users_table" type="data" format="tabular" multiple="false" label="Samples table" help="Samples metadata file"/>
+                        <param name="experiments_users_table" type="data" format="tabular" multiple="false" label="Experiments" help="Experiments metadata file"/>
+                        <param name="runs_users_table" type="data" format="tabular" multiple="false" label="Runs table" help="Runs metadata file"/>
                     </when>
                     <when value="build_tables">
                         <param name="dry_run" type="boolean" label="Print the tables but do not submit the datasets"/>
@@ -176,7 +190,7 @@ ena-upload-cli
                                         </options>
                                     </param>
                                     <repeat name="rep_runs" title="Runs executed within this experiment" min="1" >
-                                        <param name="upload_files" type="data" format="fastqsanger.gz,fastqsanger.bz2" multiple="true" label="File(s) associated with this run"/>
+                                        <param name="upload_files" type="data" format="fastqsanger.gz,fastqsanger.bz2,fastq.gz,fastq.bz" multiple="true" label="File(s) associated with this run"/>
                                     </repeat>
                                 </repeat>
                             </repeat>
@@ -193,16 +207,16 @@ ena-upload-cli
     <outputs>
         <data name="output" format="data" label="${tool.name} on ${on_string}: Upload summary"/>
         <data name="studies_table_out" format="tabular" label="Studies table">
-            <filter> action_options['input_format_conditional']['dry_run'] == True </filter>
+            <filter> action_options['input_format_conditional']['input_format'] == "build_tables" </filter>
         </data>
         <data name="samples_table_out" format="tabular" label="Samples table">
-            <filter> action_options['input_format_conditional']['dry_run'] == True </filter>
+            <filter> action_options['input_format_conditional']['input_format'] == "build_tables" </filter>
         </data>
         <data name="experiments_table_out" format="tabular" label="Experiments table">
-            <filter> action_options['input_format_conditional']['dry_run'] == True </filter>
+            <filter> action_options['input_format_conditional']['input_format'] == "build_tables" </filter>
         </data>
         <data name="runs_table_out" format="tabular" label="Runs table">
-            <filter> action_options['input_format_conditional']['dry_run'] == True </filter>
+            <filter> action_options['input_format_conditional']['input_format'] == "build_tables" </filter>
         </data>
     </outputs>
     <help><![CDATA[
