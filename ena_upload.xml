@@ -113,7 +113,7 @@ ena-upload-cli
     </configfiles>
 <inputs>
        <conditional name="action_options">
-            <param argument="--action" type="select" label="Action to execute">
+            <param name="action" type="select" label="Action to execute">
                 <option value="add" selected="True">Add new data</option>
                 <option value="modify">Modify metadata</option>
             </param>
@@ -128,7 +128,7 @@ ena-upload-cli
                         <param name="data" type="data" format="fastqsanger.gz,fastqsanger.bz2,fastq.gz,fastq.bz2" multiple="true" label="Select all datasets to upload" help="Compressed reads files listed in the runs table"/>
                         <param name="studies_users_table" type="data" format="tabular" multiple="false" label="Studies table" help="Studies metadata file"/>
                         <param name="samples_users_table" type="data" format="tabular" multiple="false" label="Samples table" help="Samples metadata file"/>
-                        <param name="experiments_users_table" type="data" format="tabular" multiple="false" label="Experiments" help="Experiments metadata file"/>
+                        <param name="experiments_users_table" type="data" format="tabular" multiple="false" label="Experiments table" help="Experiments metadata file"/>
                         <param name="runs_users_table" type="data" format="tabular" multiple="false" label="Runs table" help="Runs metadata file"/>
                     </when>
                     <when value="build_tables">
