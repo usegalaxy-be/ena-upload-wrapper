@@ -9,13 +9,13 @@
 cwd=\$(pwd);
 #set webin_id = os.environ.get('WEBIN_ID', None)
 #set webin_pass = os.environ.get('WEBIN_PASS', None)
-          
+#set working_dir = os.getcwd()   
 #if $action_options.input_format_conditional.input_format == "build_tables":
   python $__tool_directory__/extract_tables.py --out_dir \$cwd --studies $studies_json;
   #set $studies_table_path = "$cwd/studies.tsv"
-  #set $samples_table_path = "$cwd/samples.tsv"
+  #set $samples_table_path =   "$cwd/samples.tsv"
   #set $experiments_table_path = "$cwd/experiments.tsv"
-  #set $runs_table_path = "$cwd/runs.tsv"
+  #set $runs_table_path =  "$cwd/runs.tsv"
 #end if
 #if $action_options.input_format_conditional.dry_run:
     cp $studies_table_path $studies_table_out;
@@ -40,20 +40,33 @@ cwd=\$(pwd);
   #end for
 #end for
 
-## #if not $action_options.input_format_conditional.dry_run:
-##ena-upload-cli
-##    --action 'add'
-##    --center $center
-##    --webin_id $webin_id
-##    --password $webin_pass
-##    --data
-##    #for $dataset in $files_to_upload:
-##      $dataset
-##    --experiment $experiments_table
-##    --study $studies_table
-##    --run $runs_table
-##    --sample $samples_table
-##    #if $action_options.input_format_conditional.submit_dev:
+#if $action_options.input_format_conditional.dry_run == "false":
+ena-upload-cli
+    --action 'add'
+    --center $action_options.center
+    --webin_id '$webin_id'
+    --password '$webin_pass'
+    --data
+    #for $dataset in $files_to_upload:
+      $dataset
+    #end for
+#if $action_options.input_format_conditional == "user_generated_tables":
+    --experiment $action_options.input_format_conditional.experiments_users_table
+    --study $action_options.input_format_conditional.studies_users_table
+    --run $action_options.input_format_conditional.runs_users_table
+    --sample $action_options.input_format_conditional.samples_users_table
+#else:
+    --experiment $experiments_table_path
+    --study $studies_table_path
+    --run $runs_table_path
+    --sample $samples_table_path
+#end if
+#if $action_options.submit_dev == "true":
+    -d
+#end if
+  > $output  
+#end if
+
     ]]></command>
     <configfiles>
     <configfile name="studies_json">
@@ -76,9 +89,9 @@ cwd=\$(pwd);
         #end for
         $experiments.append({'title':str($experiment.experiment_title),'experiment_design':str($experiment.experiment_design),'library_strategy':str($experiment.library_strategy),'library_source':str($experiment.library_source),'library_selection':str($experiment.library_strategy),'library_layout':str($experiment.library_layout),'insert_size':str($experiment.insert_size),'library_construction_protocol':str($experiment.library_construction_protocol),'platform':str($experiment.platform),'instrument_model':str($experiment.instrument_model),'runs':$runs})
       #end for
-      $samples.append({'title':str($sample.sample_title),'description':str($sample.sample_description),'experiments':$experiments})
+      $samples.append({'title':str($sample.sample_title),'description':str($sample.sample_description),'tax_name':str($sample.scientific_name),'tax_id':str($sample.tax_id),'experiments':$experiments})
     #end for
-    $studies.append({'title':str($study.study_title),'samples':$samples})
+    $studies.append({'title':str($study.study_title),'type':str($study.study_type),'abstract':str($study.study_abstract),'pubmed_id':str($study.study_pubmed_id),'samples':$samples})
   #end for
   #echo $json.dumps($studies)
 #end if
@@ -98,11 +111,11 @@ cwd=\$(pwd);
                         <option value="build_tables" selected="False">Interactive generation of studies structure from dataset</option>
                     </param>    
                     <when value="user_generated_tables">
-                        <param argument="--data" type="data" format="fastq.gz" multiple="true" label="Datasets to upload" help="fastq.gz data to upload"/>
-                        <param argument="--experiment" type="data" format="tabular" multiple="false" label="Metadata" help="Experiment metadata file"/>
-                        <param argument="--study" type="data" format="tabular" multiple="false" label="Metadata" help="Study metadata file"/>
-                        <param argument="--run" type="data" format="tabular" multiple="false" label="Datasets to upload" help="Run metadata file"/>
-                        <param argument="--sample" type="data" format="tabular" multiple="false" label="Datasets to upload" help="Sample metadata file"/>
+                        <param name="data" type="data" format="fastq.gz" multiple="true" label="Select all datasets to upload" help="Compressed reads files listed in the runs table"/>
+                        <param name="experiments_users_table" type="data" format="tabular" multiple="false" label="Metadata" help="Experiment metadata file"/>
+                        <param name="studies_users_table" type="data" format="tabular" multiple="false" label="Metadata" help="Study metadata file"/>
+                        <param name="runs_users_table" type="data" format="tabular" multiple="false" label="Datasets to upload" help="Run metadata file"/>
+                        <param name="samples_users_table" type="data" format="tabular" multiple="false" label="Datasets to upload" help="Sample metadata file"/>
                     </when>
                     <when value="build_tables">
                         <param name="dry_run" type="boolean" label="Print the tables but do not submit the datasets"/>
@@ -170,7 +183,7 @@ cwd=\$(pwd);
                         </repeat>
                     </when>
                 </conditional>
-            <param argument="--center" type="text" format="text" optional="False" label="Affiliation center"/>
+            <param name="center" type="text" optional="False" label="Affiliation center"/>
             </when>
             <when value="modify">
                 <param name="modify_first" type="text" label="Mofification of submitted data is not yet possible"/>

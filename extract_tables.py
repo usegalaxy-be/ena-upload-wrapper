@@ -1,5 +1,6 @@
 import argparse
 import json
+import os
 import pathlib
 
 parser = argparse.ArgumentParser()
@@ -26,10 +27,10 @@ runs_table.write('\t'.join(['alias','status','accession','experiment_alias','fil
 action = 'add'
 for study_index, study in enumerate(studies_dict):
     study_alias = 'study_'+str(study_index)
-    studies_table.write('\t'.join([study_alias,study['title']]))
+    studies_table.write('\t'.join([study_alias,action,'ENA_accession',study['title'], study['type'],study['abstract'],study['pubmed_id'],'ENA_submission_data']))
     for sample_index,sample in enumerate(study['samples']):
         sample_alias = 'sample_'+str(sample_index)
-        samples_table.write('\t'.join([sample_alias,action,'ena_accession',sample['title']])+ '\n')
+        samples_table.write('\t'.join([sample_alias,action,'ena_accession',sample['title'],sample['tax_name'], sample['tax_id'],sample['description'],'ENA_submission_date'])+ '\n')
         for exp_index,exp in enumerate(sample['experiments']):
             exp_alias = 'experiment_'+str(exp_index)+'_'+str(sample_index)
             lib_alias = 'library_'+str(exp_index)+'_'+str(sample_index)
@@ -40,7 +41,8 @@ for study_index, study in enumerate(studies_dict):
                 run_index += 1
                 run_alias = '_'.join(['run',str(exp_index),str(sample_index),str(run_index)])
                 for file_entry in run:
-                    runs_table.write('\t'.join([run_alias,action,'ena_run_accession',exp_alias,file_entry,'****file_format','file_checksum','submission_date_ENA']) + '\n')
+                    file_format = 'fastq.gz' if os.path.splitext(file_entry)[-1] == '.gz' else 'fastq.bz2'
+                    runs_table.write('\t'.join([run_alias,action,'ena_run_accession',exp_alias,file_entry,file_format,'file_checksum','submission_date_ENA']) + '\n')
 
 studies_table.close()
 samples_table.close()
