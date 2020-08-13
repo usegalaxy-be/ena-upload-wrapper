@@ -1,6 +1,6 @@
 <tool id="ena_upload" name="ENA Upload tool" version="0.1.0" python_template_version="3.5">
   <macros>
-    <token name="@VERSION@">0.1.3</token>   
+    <token name="@VERSION@">0.1.5</token>
   </macros>    
   <requirements>
     <requirement type="package" version="@VERSION@">ena-upload-cli</requirement>
