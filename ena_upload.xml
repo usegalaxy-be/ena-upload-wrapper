@@ -1,10 +1,11 @@
 <tool id="ena_upload" name="ENA Upload tool" version="0.1.0" python_template_version="3.5">
   <macros>
-    <token name="@VERSION@">0.1.7</token>
+    <token name="@VERSION@">0.1.8</token>
   </macros>    
   <requirements>
     <requirement type="package" version="@VERSION@">ena-upload-cli</requirement>
   </requirements>
+  <code file="upload_helper.py" />
   <command detect_errors="exit_code"><![CDATA[
 cwd=\$(pwd);
 #set webin_id = os.environ.get('WEBIN_ID', None)
@@ -101,9 +102,13 @@ ena-upload-cli
             #end for
             $runs.append($run_files) 
         #end for
-        $experiments.append({'title':str($experiment.experiment_title),'experiment_design':str($experiment.experiment_design),'library_strategy':str($experiment.library_strategy),'library_source':str($experiment.library_source),'library_selection':str($experiment.library_strategy),'library_layout':str($experiment.library_layout),'insert_size':str($experiment.insert_size),'library_construction_protocol':str($experiment.library_construction_protocol),'platform':str($experiment.platform),'instrument_model':str($experiment.instrument_model),'runs':$runs})
+        $experiments.append({'title':str($experiment.experiment_title),'experiment_design':str($experiment.experiment_design),'library_strategy':str($experiment.library_strategy),'library_source':str($experiment.library_source),'library_selection':str($experiment.library_selection),'library_layout':str($experiment.library_layout),'insert_size':str($experiment.insert_size),'library_construction_protocol':str($experiment.library_construction_protocol),'platform':str($experiment.platform),'instrument_model':str($experiment.instrument_model),'runs':$runs})
       #end for
-      $samples.append({'title':str($sample.sample_title),'description':str($sample.sample_description),'tax_name':str($sample.scientific_name),'tax_id':str($sample.tax_id),'experiments':$experiments})
+      #if $sample.conditional_viral_metadata.viral_sample == "True":
+        $samples.append({'title':str($sample.sample_title),'description':str($sample.sample_description),'tax_name':str($sample.scientific_name),'tax_id':str($sample.tax_id),'collection_date':str($sample.conditional_viral_metadata.collection_date),'geo_location':str($sample.conditional_viral_metadata.geo_location_country),'sample_capture_status':str($sample.conditional_viral_metadata.sample_capture_status),'host_common_name':str($sample.conditional_viral_metadata.host_common_name),'host_subject_id':str($sample.conditional_viral_metadata.host_subject_id),'':str($sample.conditional_viral_metadata.host_health_state),str($sample.conditional_viral_metadata.host_sex),str($sample.conditional_viral_metadata.host_scientific_name),str($sample.conditional_viral_metadata.collector_name),str($sample.conditional_viral_metadata.collecting_institution),str($sample.conditional_viral_metadata.isolate),'experiments':$experiments})
+      #else:
+        $samples.append({'title':str($sample.sample_title),'description':str($sample.sample_description),'tax_name':str($sample.scientific_name),'tax_id':str($sample.tax_id),'experiments':$experiments})
+      #end if
     #end for
     $studies.append({'title':str($study.study_title),'type':str($study.study_type),'abstract':str($study.study_abstract),'pubmed_id':str($study.study_pubmed_id),'samples':$samples})
   #end for
@@ -137,7 +142,7 @@ ena-upload-cli
                             <param name="study_title" type="text" optional="False" label="Please provide a short descriptive title for the study"/>
                             <param name="study_abstract" type="text" optional="True" label="Please provide an abstract to describe the study in detail"/>
                             <param name="study_type" type="select" label="Please select the type of study">
-                                    <options from_file="study_type.txt">
+                                    <options from_data_table="study_type">
                                         <column name="value" index="0"/>
                                     </options>
                             </param>
@@ -147,26 +152,54 @@ ena-upload-cli
                                 <param name="sample_description" type="text" default="liver cells" label="Describe the type of sample"/>
                                 <param name="scientific_name" type="text" default="Homo Sapiens" label="Enter the species of the sample" help=""/>
                                 <param name="tax_id" type="text" label="Enter the taxonomic ID corresponding to the sample species" help=""/>
+                                <conditional name="conditional_viral_metadata">
+                                    <param name="viral_sample" type="boolean" label="Submit a viral sample?" />
+                                    <when value="True">
+                                        <param name="collection_date" type="text" label="Collection date" optional="True" help="YYYY, YYYY/MM, YYYY/MM/DD, not collected, restricted access or leave blank" />
+                                        <param name="geo_location_country">
+                                            <options from_data_table="geographic_location_1">
+                                                <column name="value" index="0"/>
+                                            </options>
+                                        </param>
+                                        <param name="sample_capture_status" />
+                                        <param name="host_common_name" />
+                                        <param name="host_subject_id" />
+                                        <param name="host_health_state">
+                                            <options from_data_table="host_health_state_1">
+                                                <column name="value" index="0"/>
+                                            </options>
+                                        </param>
+                                        <param name="host_sex">
+                                            <options from_data_table="host_sex_1">
+                                                <column name="value" index="0"/>
+                                            </options>
+                                        </param>
+                                        <param name="host_stcientific_name" />
+                                        <param name="collector_name" />
+                                        <param name="collecting_institution" />
+                                        <param name="isolate"/>
+                                    </when>
+                                </conditional>
                                 <repeat name="rep_experiment" title="Sequencing experiments performed with this sample" min="1" >
                                     <param name="experiment_title" type="text" label="Specify an experiment title" />
                                     <param name="experiment_design" type="text" label="Describe the experiment design" />
                                     <param name="library_strategy" type="select" label="Library strategy" help="The library strategy specifies the sequencing technique intended for this library">
-                                        <options from_file="library_strategy.txt">
+                                        <options from_data_table="library_strategy">
                                             <column name="value" index="0"/>
                                         </options>
                                     </param>
                                     <param name="library_source" type="select" label="Select library source" help="The library source specifies the type of source material that is being sequenced">
-                                        <options from_file="library_source.txt">
+                                        <options from_data_table="library_source">
                                             <column name="value" index="0"/>
                                         </options>
                                     </param>
                                     <param name="library_selection" type="select" label="Library selection" help="The library selection specifies whether any method was used to select for or against, enrich, or screen the material being sequenced">
-                                        <options from_file="library_selection.txt">
+                                        <options from_data_table="library_selection">
                                             <column name="value" index="0"/>
                                         </options>
                                     </param>
                                     <param name="library_layout" type="select" label="Library layout">
-                                        <options from_file="library_layout.txt">
+                                        <options from_data_table="library_layout">
                                             <column name="value" index="0"/>
                                         </options>
                                     </param>
@@ -185,7 +218,7 @@ ena-upload-cli
                                         <option value="CAPILLARY">Capillary sequencing</option>
                                     </param>
                                     <param name="instrument_model" type="select" label="Instrument model">
-                                        <options from_file="instrument_model.txt">
+                                        <options from_data_table="instrument_model">
                                             <column name="value" index="0"/>
                                         </options>
                                     </param>
