@@ -1,0 +1,133 @@
+<macros>
+    <xml name="viral_samples">
+        <repeat name="rep_sample" title="Samples associated with this study" min="1" >
+            <param name="sample_title" type="text" label="Sample title"/>
+            <param name="sample_description" type="text" help="e.g: liver cells" label="Describe the type of sample"/>
+            <param name="scientific_name" type="text" label="Enter the species of the sample" help="e.g: Homo Sapiens"/>
+            <param name="tax_id" type="text" label="Enter the taxonomic ID corresponding to the sample species" />
+            <param name="collection_date" type="text" label="Collection date" optional="True" help="options are: YYYY, YYYY/MM, YYYY/MM/DD, not collected, restricted access or leave blank" />
+            <param name="geo_location_country" type="select" label="Select the country where the sample was obtained">
+                <options from_data_table="geographic_location_1">
+                    <column name="value" index="0"/>
+                </options>
+            </param>
+            <param name="sample_capture_status" type="text" label="Describe the sample capture status" help="e.g: active surveillance in response to outbreak" />
+            <param name="host_common_name" type="text"/>
+            <param name="host_subject_id" type="text" />
+            <param name="host_health_state" type="select">
+                <options from_data_table="host_health_state_1">
+                    <column name="value" index="0"/>
+                </options>
+            </param>
+            <param name="host_sex" type="select">
+                <options from_data_table="host_sex_1">
+                    <column name="value" index="0"/>
+                </options>
+            </param>
+            <param name="host_stcientific_name" type="text" />
+            <param name="collector_name" type="text" />
+            <param name="collecting_institution" type="text" />
+            <param name="isolate" type="text" />
+            <repeat name="rep_experiment" title="Sequencing experiments performed with this sample" min="1" >
+                <param name="experiment_title" type="text" label="Specify an experiment title" />
+                <param name="experiment_design" type="text" label="Describe the experiment design" />
+                <param name="library_strategy" type="select" label="Library strategy" help="The library strategy specifies the sequencing technique intended for this library">
+                    <options from_data_table="library_strategy">
+                        <column name="value" index="0"/>
+                    </options>
+                </param>
+                <param name="library_source" type="select" label="Select library source" help="The library source specifies the type of source material that is being sequenced">
+                    <options from_data_table="library_source">
+                        <column name="value" index="0"/>
+                    </options>
+                </param>
+                <param name="library_selection" type="select" label="Library selection" help="The library selection specifies whether any method was used to select for or against, enrich, or screen the material being sequenced">
+                    <options from_data_table="library_selection">
+                        <column name="value" index="0"/>
+                    </options>
+                </param>
+                <param name="library_layout" type="select" label="Library layout">
+                    <options from_data_table="library_layout">
+                        <column name="value" index="0"/>
+                    </options>
+                </param>
+                <param name="insert_size" type="integer" value="0" label="Specify the insert size"/>
+                <param name="library_construction_protocol" type="text" label="Please describe the library construction protocol"/>
+                <param name="platform" type="select" label="Select the sequencing platform used">
+                    <option value="LS454">LS454</option>
+                    <option value="ILLUMINA">Illumina</option>
+                    <option value="HELICOS">Helicos</option>
+                    <option value="ABI_SOLID">ABI Solid</option>
+                    <option value="COMPLETE_GENOMICS">Complete Genomics</option>
+                    <option value="BGISEQ">BGI Seq</option>
+                    <option value="OXFORD_NANOPORE">Oxford Nanopore</option>
+                    <option value="PACBIO_SMRT">PacBio</option>
+                    <option value="ION_TORRENT">Ion Torrent</option>
+                    <option value="CAPILLARY">Capillary sequencing</option>
+                </param>
+                <param name="instrument_model" type="select" label="Instrument model">
+                    <options from_data_table="instrument_model">
+                        <column name="value" index="0"/>
+                    </options>
+                </param>
+                <repeat name="rep_runs" title="Runs executed within this experiment" min="1" >
+                    <param name="upload_files" type="data" format="fastqsanger.gz,fastqsanger.bz2,fastq.gz,fastq.bz" multiple="true" label="File(s) associated with this run"/>
+                </repeat>
+            </repeat>
+        </repeat>
+    </xml>
+    <xml name="nonviral_samples">
+        <repeat name="rep_sample" title="Samples associated with this study" min="1" >
+            <param name="sample_title" type="text" label="Sample title"/>
+            <param name="sample_description" type="text" help="e.g: liver cells" label="Describe the type of sample"/>
+            <param name="scientific_name" type="text" label="Enter the species of the sample" help="e.g: Homo Sapiens"/>
+            <param name="tax_id" type="text" label="Enter the taxonomic ID corresponding to the sample species" />
+            <repeat name="rep_experiment" title="Sequencing experiments performed with this sample" min="1" >
+                <param name="experiment_title" type="text" label="Specify an experiment title" />
+                <param name="experiment_design" type="text" label="Describe the experiment design" />
+                <param name="library_strategy" type="select" label="Library strategy" help="The library strategy specifies the sequencing technique intended for this library">
+                    <options from_data_table="library_strategy">
+                        <column name="value" index="0"/>
+                    </options>
+                </param>
+                <param name="library_source" type="select" label="Select library source" help="The library source specifies the type of source material that is being sequenced">
+                    <options from_data_table="library_source">
+                        <column name="value" index="0"/>
+                    </options>
+                </param>
+                <param name="library_selection" type="select" label="Library selection" help="The library selection specifies whether any method was used to select for or against, enrich, or screen the material being sequenced">
+                    <options from_data_table="library_selection">
+                        <column name="value" index="0"/>
+                    </options>
+                </param>
+                <param name="library_layout" type="select" label="Library layout">
+                    <options from_data_table="library_layout">
+                        <column name="value" index="0"/>
+                    </options>
+                </param>
+                <param name="insert_size" type="integer" value="0" label="Specify the insert size"/>
+                <param name="library_construction_protocol" type="text" label="Please describe the library construction protocol"/>
+                <param name="platform" type="select" label="Select the sequencing platform used">
+                    <option value="LS454">LS454</option>
+                    <option value="ILLUMINA">Illumina</option>
+                    <option value="HELICOS">Helicos</option>
+                    <option value="ABI_SOLID">ABI Solid</option>
+                    <option value="COMPLETE_GENOMICS">Complete Genomics</option>
+                    <option value="BGISEQ">BGI Seq</option>
+                    <option value="OXFORD_NANOPORE">Oxford Nanopore</option>
+                    <option value="PACBIO_SMRT">PacBio</option>
+                    <option value="ION_TORRENT">Ion Torrent</option>
+                    <option value="CAPILLARY">Capillary sequencing</option>
+                </param>
+                <param name="instrument_model" type="select" label="Instrument model">
+                    <options from_data_table="instrument_model">
+                        <column name="value" index="0"/>
+                    </options>
+                </param>
+                <repeat name="rep_runs" title="Runs executed within this experiment" min="1" >
+                    <param name="upload_files" type="data" format="fastqsanger.gz,fastqsanger.bz2,fastq.gz,fastq.bz" multiple="true" label="File(s) associated with this run"/>
+                </repeat>
+            </repeat>
+        </repeat>
+    </xml>
+</macros>

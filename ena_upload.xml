@@ -1,6 +1,7 @@
 <tool id="ena_upload" name="ENA Upload tool" version="0.1.0" python_template_version="3.5">
   <macros>
     <token name="@VERSION@">0.1.8</token>
+    <import>samples_macros.xml</import>
   </macros>    
   <requirements>
     <requirement type="package" version="@VERSION@">ena-upload-cli</requirement>
@@ -128,7 +129,7 @@ ena-upload-cli
                     <param name="input_format" type="select" label="Would you like to submit pregenerated table files or interactively define the input structures?">
                         <option value="user_generated_tables" selected="True">User generated tables of studies/experiments/runs/samples</option>
                         <option value="build_tables" selected="False">Interactive generation of studies structure from dataset</option>
-                    </param>    
+                    </param>
                     <when value="user_generated_tables">
                         <param name="data" type="data" format="fastqsanger.gz,fastqsanger.bz2,fastq.gz,fastq.bz2" multiple="true" label="Select all datasets to upload" help="Compressed reads files listed in the runs table"/>
                         <param name="studies_users_table" type="data" format="tabular" multiple="false" label="Studies table" help="Studies metadata file"/>
@@ -147,90 +148,19 @@ ena-upload-cli
                                     </options>
                             </param>
                             <param name="study_pubmed_id" type="text" optional="True" value="" label="Please provide the PubMed id if exists (or leave it blank)"/>
-                            <repeat name="rep_sample" title="Samples associated with this study" min="1" >
-                                <param name="sample_title" type="text" default="Blood sample" label="Sample title"/>
-                                <param name="sample_description" type="text" default="liver cells" label="Describe the type of sample"/>
-                                <param name="scientific_name" type="text" default="Homo Sapiens" label="Enter the species of the sample" help=""/>
-                                <param name="tax_id" type="text" label="Enter the taxonomic ID corresponding to the sample species" help=""/>
-                                <conditional name="conditional_viral_metadata">
-                                    <param name="viral_sample" type="boolean" label="Submit a viral sample?" />
-                                    <when value="True">
-                                        <param name="collection_date" type="text" label="Collection date" optional="True" help="YYYY, YYYY/MM, YYYY/MM/DD, not collected, restricted access or leave blank" />
-                                        <param name="geo_location_country">
-                                            <options from_data_table="geographic_location_1">
-                                                <column name="value" index="0"/>
-                                            </options>
-                                        </param>
-                                        <param name="sample_capture_status" />
-                                        <param name="host_common_name" />
-                                        <param name="host_subject_id" />
-                                        <param name="host_health_state">
-                                            <options from_data_table="host_health_state_1">
-                                                <column name="value" index="0"/>
-                                            </options>
-                                        </param>
-                                        <param name="host_sex">
-                                            <options from_data_table="host_sex_1">
-                                                <column name="value" index="0"/>
-                                            </options>
-                                        </param>
-                                        <param name="host_stcientific_name" />
-                                        <param name="collector_name" />
-                                        <param name="collecting_institution" />
-                                        <param name="isolate"/>
-                                    </when>
-                                </conditional>
-                                <repeat name="rep_experiment" title="Sequencing experiments performed with this sample" min="1" >
-                                    <param name="experiment_title" type="text" label="Specify an experiment title" />
-                                    <param name="experiment_design" type="text" label="Describe the experiment design" />
-                                    <param name="library_strategy" type="select" label="Library strategy" help="The library strategy specifies the sequencing technique intended for this library">
-                                        <options from_data_table="library_strategy">
-                                            <column name="value" index="0"/>
-                                        </options>
-                                    </param>
-                                    <param name="library_source" type="select" label="Select library source" help="The library source specifies the type of source material that is being sequenced">
-                                        <options from_data_table="library_source">
-                                            <column name="value" index="0"/>
-                                        </options>
-                                    </param>
-                                    <param name="library_selection" type="select" label="Library selection" help="The library selection specifies whether any method was used to select for or against, enrich, or screen the material being sequenced">
-                                        <options from_data_table="library_selection">
-                                            <column name="value" index="0"/>
-                                        </options>
-                                    </param>
-                                    <param name="library_layout" type="select" label="Library layout">
-                                        <options from_data_table="library_layout">
-                                            <column name="value" index="0"/>
-                                        </options>
-                                    </param>
-                                    <param name="insert_size" type="integer" value="0" label="Specify the insert size"/>
-                                    <param name="library_construction_protocol" type="text" label="Please describe the library construction protocol"/>
-                                    <param name="platform" type="select" label="Select the sequencing platform used">
-                                        <option value="LS454">LS454</option>
-                                        <option value="ILLUMINA">Illumina</option>
-                                        <option value="HELICOS">Helicos</option>
-                                        <option value="ABI_SOLID">ABI Solid</option>
-                                        <option value="COMPLETE_GENOMICS">Complete Genomics</option>
-                                        <option value="BGISEQ">BGI Seq</option>
-                                        <option value="OXFORD_NANOPORE">Oxford Nanopore</option>
-                                        <option value="PACBIO_SMRT">PacBio</option>
-                                        <option value="ION_TORRENT">Ion Torrent</option>
-                                        <option value="CAPILLARY">Capillary sequencing</option>
-                                    </param>
-                                    <param name="instrument_model" type="select" label="Instrument model">
-                                        <options from_data_table="instrument_model">
-                                            <column name="value" index="0"/>
-                                        </options>
-                                    </param>
-                                    <repeat name="rep_runs" title="Runs executed within this experiment" min="1" >
-                                        <param name="upload_files" type="data" format="fastqsanger.gz,fastqsanger.bz2,fastq.gz,fastq.bz" multiple="true" label="File(s) associated with this run"/>
-                                    </repeat>
-                                </repeat>
-                            </repeat>
+                            <conditional name="conditional_viral_metadata">
+                                <param name="viral_sample" type="boolean" label="Does your submission contains viral samples?" />
+                                <when value="true">
+                                    <expand macro="viral_samples" />
+                                </when>
+                                <when value="false">
+                                    <expand macro="nonviral_samples" />
+                                </when>
+                            </conditional>
                         </repeat>
                     </when>
                 </conditional>
-            <param name="center" type="text" optional="False" label="Affiliation center"/>
+                <param name="center" type="text" optional="False" label="Affiliation center"/>
             </when>
             <when value="modify">
                 <param name="modify_first" type="text" label="Mofification of submitted data is not yet possible"/>
