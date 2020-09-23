@@ -6,7 +6,6 @@
   <requirements>
     <requirement type="package" version="@VERSION@">ena-upload-cli</requirement>
   </requirements>
-  <code file="upload_helper.py" />
   <command detect_errors="exit_code"><![CDATA[
 cwd=\$(pwd);
 #set webin_id = os.environ.get('WEBIN_ID', None)
