@@ -3,31 +3,32 @@
         <repeat name="rep_sample" title="Samples associated with this study" min="1" >
             <param name="sample_title" type="text" label="Sample title"/>
             <param name="sample_description" type="text" help="e.g: liver cells" label="Describe the type of sample"/>
-            <param name="scientific_name" type="text" label="Enter the species of the sample" help="e.g: Homo Sapiens"/>
+            <param name="scientific_name" type="text" label="Enter the species of the sample" help="e.g Severe acute respiratory syndrome coronavirus 2"/>
             <param name="tax_id" type="text" label="Enter the taxonomic ID corresponding to the sample species" />
-            <param name="collection_date" type="text" label="Collection date" optional="True" help="options are: YYYY, YYYY/MM, YYYY/MM/DD, not collected, restricted access or leave blank" />
+            <param name="collection_date" type="text" label="Collection date" optional="True" help="options are: YYYY, YYYY/MM, YYYY/MM/DD, not collected, restricted access or leave blank">
+                <validator type="regex"  message="Data format is not valid">(^[0-9]{4}(-[0-9]{2}(-[0-9]{2}(T[0-9]{2}:[0-9]{2}(:[0-9]{2})?Z?([+-][0-9]{1,2})?)?)?)?(/[0-9]{4}(-[0-9]{2}(-[0-9]{2}(T[0-9]{2}:[0-9]{2}(:[0-9]{2})?Z?([+-][0-9]{1,2})?)?)?)?)?$)|(^not colected$)|(^not provided$)|(^restricted access$)</validator>
+            </param>
             <param name="geo_location_country" type="select" label="Select the country where the sample was obtained">
                 <options from_data_table="geographic_location_1">
                     <column name="value" index="0"/>
                 </options>
             </param>
-            <param name="sample_capture_status" type="text" label="Describe the sample capture status" help="e.g: active surveillance in response to outbreak" />
-            <param name="host_common_name" type="text"/>
-            <param name="host_subject_id" type="text" />
-            <param name="host_health_state" type="select">
+            <param name="host_common_name" type="text" label="Host common name" help="e.g human"/>
+            <param name="host_subject_id" type="text" label="Host subject id"/>
+            <param name="host_health_state" type="select" label="Host health state">
                 <options from_data_table="host_health_state_1">
                     <column name="value" index="0"/>
                 </options>
             </param>
-            <param name="host_sex" type="select">
+            <param name="host_sex" type="select" label="Host sex">
                 <options from_data_table="host_sex_1">
                     <column name="value" index="0"/>
                 </options>
             </param>
-            <param name="host_stcientific_name" type="text" />
-            <param name="collector_name" type="text" />
-            <param name="collecting_institution" type="text" />
-            <param name="isolate" type="text" />
+            <param name="host_scientific_name" type="text" label="Host scientific name" help="e.g Homo sapiens"/>
+            <param name="collector_name" type="text" label="Collector name" help="Leave blank if unknown"/>
+            <param name="collecting_institution" type="text" label="Collecting institution"/>
+            <param name="isolate" type="text" label="Isolate"/>
             <repeat name="rep_experiment" title="Sequencing experiments performed with this sample" min="1" >
                 <param name="experiment_title" type="text" label="Specify an experiment title" />
                 <param name="experiment_design" type="text" label="Describe the experiment design" />
@@ -80,7 +81,7 @@
         <repeat name="rep_sample" title="Samples associated with this study" min="1" >
             <param name="sample_title" type="text" label="Sample title"/>
             <param name="sample_description" type="text" help="e.g: liver cells" label="Describe the type of sample"/>
-            <param name="scientific_name" type="text" label="Enter the species of the sample" help="e.g: Homo Sapiens"/>
+            <param name="scientific_name" type="text" label="Enter the species of the sample" help="e.g Severe acute respiratory syndrome coronavirus 2"/>
             <param name="tax_id" type="text" label="Enter the taxonomic ID corresponding to the sample species" />
             <repeat name="rep_experiment" title="Sequencing experiments performed with this sample" min="1" >
                 <param name="experiment_title" type="text" label="Specify an experiment title" />

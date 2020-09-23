@@ -2,7 +2,7 @@
   <macros>
     <token name="@VERSION@">0.1.8</token>
     <import>samples_macros.xml</import>
-  </macros>    
+</macros>
   <requirements>
     <requirement type="package" version="@VERSION@">ena-upload-cli</requirement>
   </requirements>
@@ -11,7 +11,7 @@
 cwd=\$(pwd);
 #set webin_id = os.environ.get('WEBIN_ID', None)
 #set webin_secret = os.environ.get('WEBIN_SECRET', None)
-#set working_dir = os.getcwd()   
+#set working_dir = os.getcwd()
 #set $dry_run_option = "False"
 #if $action_options.input_format_conditional.input_format == "build_tables":
   python $__tool_directory__/extract_tables.py --out_dir \$cwd --studies $studies_json;
@@ -37,7 +37,7 @@ cwd=\$(pwd);
 #set $files_to_upload = list()
 #if $action_options.input_format_conditional.input_format == "build_tables":
     #for $study in $action_options.input_format_conditional.rep_study:
-      #for $sample in $study.rep_sample:
+      #for $sample in $study.conditional_viral_metadata.rep_sample:
         #for $experiment in $sample.rep_experiment:
           #for $run in $experiment.rep_runs:
             #for $file in $run.upload_files:
@@ -80,7 +80,7 @@ ena-upload-cli
 #if $action_options.submit_dev == "true":
     -d
 #end if
-  > $output  
+  > $output
 #end if
 
     ]]></command>
@@ -92,7 +92,7 @@ ena-upload-cli
   #set $studies = list()
   #for $study in $action_options.input_format_conditional.rep_study:
     #set samples = list()
-    #for $sample in $study.rep_sample:
+    #for $sample in $study.conditional_viral_metadata.rep_sample:
       #set experiments = list()
       #for $experiment in $sample.rep_experiment:
         #set runs = list()
@@ -101,12 +101,12 @@ ena-upload-cli
             #for $file in $run.upload_files:
               $run_files.append(str($file.element_identifier))
             #end for
-            $runs.append($run_files) 
+            $runs.append($run_files)
         #end for
         $experiments.append({'title':str($experiment.experiment_title),'experiment_design':str($experiment.experiment_design),'library_strategy':str($experiment.library_strategy),'library_source':str($experiment.library_source),'library_selection':str($experiment.library_selection),'library_layout':str($experiment.library_layout),'insert_size':str($experiment.insert_size),'library_construction_protocol':str($experiment.library_construction_protocol),'platform':str($experiment.platform),'instrument_model':str($experiment.instrument_model),'runs':$runs})
       #end for
-      #if $sample.conditional_viral_metadata.viral_sample == "True":
-        $samples.append({'title':str($sample.sample_title),'description':str($sample.sample_description),'tax_name':str($sample.scientific_name),'tax_id':str($sample.tax_id),'collection_date':str($sample.conditional_viral_metadata.collection_date),'geo_location':str($sample.conditional_viral_metadata.geo_location_country),'sample_capture_status':str($sample.conditional_viral_metadata.sample_capture_status),'host_common_name':str($sample.conditional_viral_metadata.host_common_name),'host_subject_id':str($sample.conditional_viral_metadata.host_subject_id),'':str($sample.conditional_viral_metadata.host_health_state),str($sample.conditional_viral_metadata.host_sex),str($sample.conditional_viral_metadata.host_scientific_name),str($sample.conditional_viral_metadata.collector_name),str($sample.conditional_viral_metadata.collecting_institution),str($sample.conditional_viral_metadata.isolate),'experiments':$experiments})
+      #if $study.conditional_viral_metadata.viral_sample == "true":
+        $samples.append({'title':str($sample.sample_title),'description':str($sample.sample_description),'tax_name':str($sample.scientific_name),'tax_id':str($sample.tax_id),'collection_date':str($sample.collection_date),'geo_location':str($sample.geo_location_country),'host_common_name':str($sample.host_common_name),'host_subject_id':str($sample.host_subject_id),'host_health_state':str($sample.host_health_state),'host_sex':str($sample.host_sex),'host_scientific_name':str($sample.host_scientific_name),'collector_name':str($sample.collector_name),'collecting_institution':str($sample.collecting_institution),'isolate':str($sample.isolate),'experiments':$experiments})
       #else:
         $samples.append({'title':str($sample.sample_title),'description':str($sample.sample_description),'tax_name':str($sample.scientific_name),'tax_id':str($sample.tax_id),'experiments':$experiments})
       #end if
