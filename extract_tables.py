@@ -35,6 +35,8 @@ for study_index, study in enumerate(studies_dict):
     for sample_index,sample in enumerate(study['samples']):
         sample_alias = 'sample_'+str(sample_index)
         if "geo_location" in sample.keys(): # sample belongs to a viral sample
+            if sample['collector_name'] == '':
+                sample['collector_name'] = 'unknown'
             samples_table.write('\t'.join([sample_alias,action,'ena_accession',sample['title'],sample['tax_name'], sample['tax_id'],sample['description'],sample['collection_date'],sample['geo_location'],sample['host_common_name'],sample['host_subject_id'],sample['host_health_state'],sample['host_sex'],sample['host_scientific_name'],sample['collector_name'],sample['collecting_institution'],sample['isolate'],'ENA_submission_date'])+ '\n')
         else:
             samples_table.write('\t'.join([sample_alias,action,'ena_accession',sample['title'],sample['tax_name'], sample['tax_id'],sample['description'],'ENA_submission_date'])+ '\n')

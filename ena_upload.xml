@@ -35,8 +35,8 @@ cwd=\$(pwd);
 ## create the list of files to upload and make the symlinks 
 #set $files_to_upload = list()
 #if $action_options.input_format_conditional.input_format == "build_tables":
-    #for $study in $action_options.input_format_conditional.rep_study:
-      #for $sample in $study.conditional_viral_metadata.rep_sample:
+    #for $study in $action_options.input_format_conditional.conditional_viral_metadata.rep_study:
+      #for $sample in $study.rep_sample:
         #for $experiment in $sample.rep_experiment:
           #for $run in $experiment.rep_runs:
             #for $file in $run.upload_files:
@@ -78,6 +78,9 @@ ena-upload-cli
     --study $studies_table_path
     --run $runs_table_path
     --sample $samples_table_path
+    #if $action_options.input_format_conditional.conditional_viral_metadata.viral_sample == "true":
+      --vir
+    #end if
 #end if
 #if $action_options.submit_dev == "true":
     -d
@@ -92,9 +95,9 @@ ena-upload-cli
 #if $action_options.input_format_conditional.input_format == "build_tables":
   #set $files_to_upload = list()
   #set $studies = list()
-  #for $study in $action_options.input_format_conditional.rep_study:
+  #for $study in $action_options.input_format_conditional.conditional_viral_metadata.rep_study:
     #set samples = list()
-    #for $sample in $study.conditional_viral_metadata.rep_sample:
+    #for $sample in $study.rep_sample:
       #set experiments = list()
       #for $experiment in $sample.rep_experiment:
         #set runs = list()
@@ -107,7 +110,7 @@ ena-upload-cli
         #end for
         $experiments.append({'title':str($experiment.experiment_title),'experiment_design':str($experiment.experiment_design),'library_strategy':str($experiment.library_strategy),'library_source':str($experiment.library_source),'library_selection':str($experiment.library_selection),'library_layout':str($experiment.library_layout),'insert_size':str($experiment.insert_size),'library_construction_protocol':str($experiment.library_construction_protocol),'platform':str($experiment.platform),'instrument_model':str($experiment.instrument_model),'runs':$runs})
       #end for
-      #if $study.conditional_viral_metadata.viral_sample == "true":
+      #if $action_options.input_format_conditional.conditional_viral_metadata.viral_sample == "true":
         $samples.append({'title':str($sample.sample_title),'description':str($sample.sample_description),'tax_name':str($sample.scientific_name),'tax_id':str($sample.tax_id),'collection_date':str($sample.collection_date),'geo_location':str($sample.geo_location_country),'host_common_name':str($sample.host_common_name),'host_subject_id':str($sample.host_subject_id),'host_health_state':str($sample.host_health_state),'host_sex':str($sample.host_sex),'host_scientific_name':str($sample.host_scientific_name),'collector_name':str($sample.collector_name),'collecting_institution':str($sample.collecting_institution),'isolate':str($sample.isolate),'experiments':$experiments})
       #else:
         $samples.append({'title':str($sample.sample_title),'description':str($sample.sample_description),'tax_name':str($sample.scientific_name),'tax_id':str($sample.tax_id),'experiments':$experiments})
@@ -142,25 +145,15 @@ ena-upload-cli
                     </when>
                     <when value="build_tables">
                         <param name="dry_run" type="boolean" label="Print the tables but do not submit the datasets"/>
-                        <repeat name="rep_study" title="Study" min="1">
-                            <param name="study_title" type="text" optional="False" label="Please provide a short descriptive title for the study"/>
-                            <param name="study_abstract" type="text" optional="True" label="Please provide an abstract to describe the study in detail"/>
-                            <param name="study_type" type="select" label="Please select the type of study">
-                                    <options from_data_table="study_type">
-                                        <column name="value" index="0"/>
-                                    </options>
-                            </param>
-                            <param name="study_pubmed_id" type="text" optional="True" value="" label="Please provide the PubMed id if exists (or leave it blank)"/>
-                            <conditional name="conditional_viral_metadata">
-                                <param name="viral_sample" type="boolean" label="Does your submission contains viral samples?" />
-                                <when value="true">
-                                    <expand macro="viral_samples" />
-                                </when>
-                                <when value="false">
-                                    <expand macro="nonviral_samples" />
-                                </when>
-                            </conditional>
-                        </repeat>
+                        <conditional name="conditional_viral_metadata">
+                            <param name="viral_sample" type="boolean" label="Does your submission contains viral samples?" />
+                            <when value="true">
+                                <expand macro="viral_samples" />
+                            </when>
+                            <when value="false">
+                                <expand macro="nonviral_samples" />
+                            </when>
+                        </conditional>
                     </when>
                 </conditional>
                 <param name="center" type="text" optional="False" label="Affiliation center"/>
