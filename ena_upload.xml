@@ -1,6 +1,6 @@
 <tool id="ena_upload" name="ENA Upload tool" version="0.2" python_template_version="3.5">
   <macros>
-    <token name="@VERSION@">0.2.1</token>
+    <token name="@VERSION@">0.2.2</token>
     <import>samples_macros.xml</import>
 </macros>
   <requirements>
@@ -57,6 +57,7 @@ cwd=\$(pwd);
 
 #if $dry_run_option == "False":
 ena-upload-cli
+    --tool 'ena-upload-cli v@VERSION@ @ Galaxy'
     --action 'add'
     --center '$action_options.center'
     --webin_id '$webin_id'
