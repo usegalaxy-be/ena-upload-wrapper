@@ -130,7 +130,7 @@ ena-upload-cli
                 <option value="modify">Modify metadata</option>
             </param>
             <when value="add">
-                <param name="submit_dev" type="boolean" label="Submit to test ENA server?"/>
+                <param name="submit_dev" type="boolean" label="Submit to test ENA server?" help="By selecting yes the reads will be submitted " />
                 <conditional name="input_format_conditional">
                     <param name="input_format" type="select" label="Would you like to submit pregenerated table files or interactively define the input structures?">
                         <option value="user_generated_tables" selected="True">User generated tables of studies/experiments/runs/samples</option>
@@ -145,7 +145,7 @@ ena-upload-cli
                         <param name="runs_users_table" type="data" format="tabular" multiple="false" label="Runs table" help="Runs metadata file"/>
                     </when>
                     <when value="build_tables">
-                        <param name="dry_run" type="boolean" label="Print the tables but do not submit the datasets"/>
+                        <param name="dry_run" type="boolean" label="Print the tables but do not submit the datasets" help="If yes is selected then NO submission will be performed."/>
                         <conditional name="conditional_viral_metadata">
                             <param name="viral_sample" type="boolean" label="Does your submission contains viral samples?" />
                             <when value="true">
