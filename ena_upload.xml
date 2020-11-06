@@ -5,6 +5,7 @@
 </macros>
   <requirements>
     <requirement type="package" version="@VERSION@">ena-upload-cli</requirement>
+    <requirement type="package" version="1.2.0">xlrd</requirement>
   </requirements>
   <command detect_errors="exit_code"><![CDATA[
 cwd=\$(pwd);
@@ -12,12 +13,28 @@ cwd=\$(pwd);
 #set webin_secret = os.environ.get('WEBIN_SECRET', None)
 #set working_dir = os.getcwd()
 #set $dry_run_option = "False"
+#set viral_submission = "False"
 #if $action_options.input_format_conditional.input_format == "build_tables":
   python $__tool_directory__/extract_tables.py --out_dir \$cwd --studies $studies_json;
   #set $studies_table_path = "$cwd/studies.tsv"
   #set $samples_table_path =   "$cwd/samples.tsv"
   #set $experiments_table_path = "$cwd/experiments.tsv"
   #set $runs_table_path =  "$cwd/runs.tsv"
+#end if
+
+#if $action_options.input_format_conditional.input_format == "excel_tables":
+    python $__tool_directory__/process_xlsx.py 
+    #if $action_options.input_format_conditional.viral_submission == "true":
+        --vir 
+    #end if
+    --form $action_options.input_format_conditional.xlsx_file --out_dir . ;
+    #set $studies_table_path = "$cwd/studies.tsv"
+    #set $samples_table_path =   "$cwd/samples.tsv"
+    #set $experiments_table_path = "$cwd/experiments.tsv"
+    #set $runs_table_path =  "$cwd/runs.tsv"
+    #if $action_options.input_format_conditional.dry_run == "true":
+      #set $dry_run_option = "True"
+    #end if
 #end if
 
 #if $action_options.input_format_conditional.input_format != "user_generated_tables":
@@ -29,7 +46,6 @@ cwd=\$(pwd);
       #set $dry_run_option = "True"
     #end if
 #end if
-
 
 
 ## create the list of files to upload and make the symlinks 
@@ -79,8 +95,14 @@ ena-upload-cli
     --study $studies_table_path
     --run $runs_table_path
     --sample $samples_table_path
-    #if $action_options.input_format_conditional.conditional_viral_metadata.viral_sample == "true":
-      --vir
+    #if $action_options.input_format_conditional.input_format == "build_tables":
+        #if $action_options.input_format_conditional.conditional_viral_metadata.viral_sample == "true":
+          --vir
+        #end if
+    #else:
+        #if $action_options.input_format_conditional.viral_submission == "true":
+          --vir
+        #end if
     #end if
 #end if
 #if $action_options.submit_dev == "true":
@@ -133,9 +155,16 @@ ena-upload-cli
                 <param name="submit_dev" type="boolean" label="Submit to test ENA server?" help="By selecting yes the reads will be submitted " />
                 <conditional name="input_format_conditional">
                     <param name="input_format" type="select" label="Would you like to submit pregenerated table files or interactively define the input structures?">
-                        <option value="user_generated_tables" selected="True">User generated tables of studies/experiments/runs/samples</option>
-                        <option value="build_tables" selected="False">Interactive generation of studies structure from dataset</option>
+                        <option value="user_generated_tables" selected="False">User generated tables of studies/experiments/runs/samples</option>
+                        <option value="excel_tables" selected="False">User generated metadata tables based on Excel templates</option>
+                        <option value="build_tables" selected="True">Interactive generation of studies structure from dataset</option>
                     </param>
+                    <when value="excel_tables">
+                        <param name="viral_submission" type="boolean" label="Does your submission data belong to a viral sample?" help="If you select yes then your data will be submitted using the ENA virus pathogen reporting standard checklist (see: https://ena-browser-docs.readthedocs.io/en/latest/help_and_guides/sars-cov-2-submissions.html)" />
+                        <param name="dry_run" type="boolean" label="Print the tables but do not submit the datasets" help="If yes is selected then NO submission will be performed."/>
+                        <param name="xlsx_file" type="data" format="xlsx" label="File based on templates here:"/>
+                        <param name="data" type="data" format="fastqsanger.gz,fastqsanger.bz2,fastq.gz,fastq.bz2" multiple="true" label="Select all datasets to upload" help="Compressed reads files listed in the runs table"/>
+                    </when>
                     <when value="user_generated_tables">
                         <param name="viral_submission" type="boolean" label="Does your submission data belong to a viral sample?" help="If you select yes then your data will be submitted using the ENA virus pathogen reporting standard checklist (see: https://ena-browser-docs.readthedocs.io/en/latest/help_and_guides/sars-cov-2-submissions.html)" />
                         <param name="data" type="data" format="fastqsanger.gz,fastqsanger.bz2,fastq.gz,fastq.bz2" multiple="true" label="Select all datasets to upload" help="Compressed reads files listed in the runs table"/>
@@ -167,16 +196,16 @@ ena-upload-cli
     <outputs>
         <data name="output" format="data" label="${tool.name} on ${on_string}: Upload summary"/>
         <data name="studies_table_out" format="tabular" label="Studies table">
-            <filter> action_options['input_format_conditional']['input_format'] == "build_tables" </filter>
+            <filter> action_options['input_format_conditional']['input_format'] == "build_tables" or action_options['input_format_conditional']['input_format'] == "excel_tables"</filter>
         </data>
         <data name="samples_table_out" format="tabular" label="Samples table">
-            <filter> action_options['input_format_conditional']['input_format'] == "build_tables" </filter>
+            <filter> action_options['input_format_conditional']['input_format'] == "build_tables" or action_options['input_format_conditional']['input_format'] == "excel_tables"</filter>
         </data>
         <data name="experiments_table_out" format="tabular" label="Experiments table">
-            <filter> action_options['input_format_conditional']['input_format'] == "build_tables" </filter>
+            <filter> action_options['input_format_conditional']['input_format'] == "build_tables" or action_options['input_format_conditional']['input_format'] == "excel_tables"</filter>
         </data>
         <data name="runs_table_out" format="tabular" label="Runs table">
-            <filter> action_options['input_format_conditional']['input_format'] == "build_tables" </filter>
+            <filter> action_options['input_format_conditional']['input_format'] == "build_tables" or action_options['input_format_conditional']['input_format'] == "excel_tables"</filter>
         </data>
     </outputs>
     <help><![CDATA[
