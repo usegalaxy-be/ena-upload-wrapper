@@ -173,9 +173,9 @@ ena-upload-cli
                 <param name="submit_dev" type="boolean" label="Submit to test ENA server?" help="By selecting yes the reads will be submitted " />
                 <conditional name="input_format_conditional">
                     <param name="input_format" type="select" label="Would you like to submit pregenerated table files or interactively define the input structures?">
-                        <option value="user_generated_tables" selected="False">User generated tables of studies/experiments/runs/samples</option>
-                        <option value="excel_tables" selected="False">User generated metadata tables based on Excel templates</option>
-                        <option value="build_tables" selected="True">Interactive generation of studies structure from dataset</option>
+                        <option value="excel_tables" selected="True">User generated metadata tables based on Excel templates</option>
+                        <option value="build_tables" selected="False">Interactive generation of the study structure (recomended for small studies)</option>
+                        <option value="user_generated_tables" selected="False">User generated tabular files of studies - samples - experiments - runs </option>
                     </param>
                     <when value="excel_tables">
                         <param name="viral_submission" type="boolean" label="Does your submission data belong to a viral sample?" help="If you select yes then your data will be submitted using the ENA virus pathogen reporting standard checklist (see: https://ena-browser-docs.readthedocs.io/en/latest/help_and_guides/sars-cov-2-submissions.html)" />
