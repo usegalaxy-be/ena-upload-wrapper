@@ -9,8 +9,22 @@
   </requirements>
   <command detect_errors="exit_code"><![CDATA[
 cwd=\$(pwd);
-#set webin_id = os.environ.get('WEBIN_ID', None)
-#set webin_secret = os.environ.get('WEBIN_SECRET', None)
+#set $use_secret = "False"
+#set $webin_id = $__user__.extra_preferences.get('ena_account|webin_id', "")
+#set $password = $__user__.extra_preferences.get('ena_account|password', "")
+#if $webin_id == "":
+    ## No user defined credentials, try with global webin_id + secret file path
+    #set webin_id = os.environ.get('WEBIN_ID', "")
+    #set webin_secret = os.environ.get('WEBIN_SECRET', None)
+    #set use_secret = "True"
+    #if webin_id == "":
+        echo "No ENA credentials defined. Set your credentials via: User -> Preferences -> Manage Information";
+        exit 1;
+    #end if
+#end if
+
+echo "Submissions will be made with user: $webin_id. You can set your credentials via: User -> Preferences -> Manage Information";
+
 #set working_dir = os.getcwd()
 #set $dry_run_option = "False"
 #set viral_submission = "False"
@@ -77,7 +91,11 @@ ena-upload-cli
     --action 'add'
     --center '$action_options.center'
     --webin_id '$webin_id'
-    --secret '$webin_secret'
+    #if $use_secret == "False":
+        --password $password
+    #else:
+        --secret $webin_secret
+    #end if
     --data
     #for $dataset in $files_to_upload:
       $dataset
