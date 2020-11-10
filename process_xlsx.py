@@ -2,25 +2,39 @@ import argparse
 import json
 import os
 import pathlib
+import sys
 import xlrd
+
 from datetime import datetime
 
 
 def extract_data(xl_sheet, expected_columns):
-    # Check that the columns in the sheet correspond to what I expect
+    # Check that the columns I expect are present in the sheet (any order and mixed with others)
     # Just a verification that the user filled the correct template
-    row_id = 0
+    sheet_columns = {}
+    for sh_col in range(xl_sheet.ncols):
+        if xl_sheet.cell(0, sh_col).value in expected_columns:
+            if xl_sheet.cell(0, sh_col).value in sheet_columns.keys():
+                sys.exit("Duplicated columns")
+            else:
+                sheet_columns[xl_sheet.cell(0, sh_col).value] = sh_col
     for col in range(len(expected_columns)):
-        assert expected_columns[col] == xl_sheet.cell(row_id, col).value
+        assert expected_columns[col] in sheet_columns.keys(), "Expected column %s not found" %expected_columns[col]
+
+    # fetch rows in a dict
     data_dict = {}
+    # the first of the expected columns will be the index
+    index_col = sheet_columns[expected_columns[0]]
+    ## skip first 2 rows: column names + comments rows
     for row_id in range(2,xl_sheet.nrows):
         row_dict = {}
         for col in range(1,len(expected_columns)):
-            row_dict[expected_columns[col]] = xl_sheet.cell(row_id,col).value
+            # row_dict[expected_columns[col]] = xl_sheet.cell(row_id,col).value
+            sheet_col_index = sheet_columns[expected_columns[col]]
+            row_dict[expected_columns[col]] = xl_sheet.cell(row_id,sheet_col_index).value
         # should I check for duplicate alias/ids?
-        data_dict[xl_sheet.cell(row_id, 0).value] = row_dict
+        data_dict[xl_sheet.cell(row_id, index_col).value] = row_dict
     return data_dict
-
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--form',dest='xlsx_path', required=True)
