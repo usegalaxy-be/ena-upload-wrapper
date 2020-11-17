@@ -62,7 +62,7 @@ xl_sheet = xl_workbook.sheet_by_name('ENA_sample')
 if(xl_sheet.nrows < 3):
     raise ValueError('No entries found in samples')
 if args.viral_submission:
-    samples_cols = ['alias','title','scientific_name','sample_description','collection date','geographic location (country and/or sea)', 'geographic location (region and locality)', 'sample capture status', 'host disease outcome', 'host common name', 'host age', 'host health state', 'host sex', 'host scientific name', 'virus identifier', 'collector name', 'collecting institution', 'isolate','isolation source host-associated']
+    samples_cols = ['alias','title','scientific_name','sample_description','geographic location (country and/or sea)', 'host common name', 'host health state', 'host sex', 'host scientific name', 'collector name', 'collection date','collecting institution', 'isolate']
 else:
     samples_cols = ['alias','title','scientific_name','sample_description']
 samples_dict = extract_data(xl_sheet, samples_cols)
@@ -99,7 +99,7 @@ studies_table.write('\t'.join(['alias','status','accession','title','study_type'
 
 samples_table = open(pathlib.Path(args.out_path) / 'samples.tsv', 'w')
 if args.viral_submission:
-    samples_table.write('\t'.join(['alias','status','accession','title','scientific_name','taxon_id','sample_description','collection_date','geographic_location','host_common_name','host_subject_id','host_health_state','host_sex','host_scientific_name','collector_name','collecting_institution','isolate','submission_date']) + '\n')
+    samples_table.write('\t'.join(['alias','status','accession','title','scientific_name','taxon_id','sample_description','collection date','geographic_location','host_common_name','host_subject_id','host_health_state','host_sex','host_scientific_name','collector_name','collecting_institution','isolate','submission_date']) + '\n')
 else:
     samples_table.write('\t'.join(['alias','status','accession','title','scientific_name','taxon_id','sample_description','submission_date'])+ '\n')
 

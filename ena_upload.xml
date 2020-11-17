@@ -10,12 +10,13 @@
   <command detect_errors="exit_code"><![CDATA[
 cwd=\$(pwd);
 #set $use_secret = "False"
-#set $webin_id = $__user__.extra_preferences.get('ena_account|webin_id', "")
-#set $password = $__user__.extra_preferences.get('ena_account|password', "")
+#set $webin_id = $__user__.extra_preferences.get('ena_account|webin_id', "").strip()
+#set $password = $__user__.extra_preferences.get('ena_account|password', "").strip()
+echo $webin_id;
 #if $webin_id == "":
     ## No user defined credentials, try with global webin_id + secret file path
-    #set webin_id = os.environ.get('WEBIN_ID', "")
-    #set webin_secret = os.environ.get('WEBIN_SECRET', None)
+    #set webin_id = os.environ.get('WEBIN_ID', "").strip()
+    #set webin_secret = os.environ.get('WEBIN_SECRET', "").strip()
     #set use_secret = "True"
     #if webin_id == "":
         echo "No ENA credentials defined. Set your credentials via: User -> Preferences -> Manage Information";
@@ -227,6 +228,6 @@ ena-upload-cli
         </data>
     </outputs>
     <help><![CDATA[
-        TODO: Fill in help.
+        This is a wrapper for the ENA upload tool in https://github.com/usegalaxy-eu/ena-upload-cli
     ]]></help>
 </tool>
