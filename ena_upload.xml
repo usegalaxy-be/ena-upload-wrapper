@@ -208,7 +208,7 @@ ena-upload-cli
                 <param name="center" type="text" optional="False" label="Affiliation center"/>
             </when>
             <when value="modify">
-                <param name="modify_first" type="text" label="Mofification of submitted data is not yet possible"/>
+                <param name="modify_first" type="text" label="Modification of submitted data is not yet possible"/>
             </when>
         </conditional>
     </inputs>
@@ -229,5 +229,8 @@ ena-upload-cli
     </outputs>
     <help><![CDATA[
         This is a wrapper for the ENA upload tool in https://github.com/usegalaxy-eu/ena-upload-cli
+        The input metadata can be submitted following the tabular format of the templates in https://github.com/usegalaxy-eu/ena-upload-cli/tree/master/example_tables
+        It is also possible to submit an excel file by following the template in https://drive.google.com/file/d/1ncC22--tW2v-EI-te_r86sAZujIPAjlX/view?usp=sharing
+        For viral submissions a larger set of metadata is required, you can find the template in https://drive.google.com/file/d/1U4VdcczsIecIXxseV8svE1zO_CBUadog/view?usp=sharing 
     ]]></help>
 </tool>
