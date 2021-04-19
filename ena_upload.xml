@@ -152,7 +152,7 @@ ena-upload-cli
                 <option value="modify">Modify metadata</option>
             </param>
             <when value="add">
-                <param name="submit_dev" type="boolean" label="Submit to test ENA server?" help="By selecting yes the reads will be submitted " />
+                <param name="submit_dev" type="boolean" label="Submit to test ENA server?" help="By selecting yes the reads will be submitted to the ENA test server. They will not be public and will be removed in 24hrs." />
                 <conditional name="input_format_conditional">
                     <param name="input_format" type="select" label="Would you like to submit pregenerated table files or interactively define the input structures?">
                         <option value="user_generated_tables" selected="False">User generated tables of studies/experiments/runs/samples</option>
@@ -189,7 +189,7 @@ ena-upload-cli
                 <param name="center" type="text" optional="False" label="Affiliation center"/>
             </when>
             <when value="modify">
-                <param name="modify_first" type="text" label="Mofification of submitted data is not yet possible"/>
+                <param name="modify_first" type="text" label="Modification of submitted data is not yet possible"/>
             </when>
         </conditional>
     </inputs>
