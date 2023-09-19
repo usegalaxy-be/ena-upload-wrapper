@@ -1,4 +1,4 @@
 # ena-upload-wrapper
-Galaxy wrapper for ena-cli-upload
 
-This tool is shipped in a ready to use Galaxy container found [here](https://github.com/ELIXIR-Belgium/ena-upload-container).
+
+**DEPRECATED** this repo is moved to IUC: https://github.com/galaxyproject/tools-iuc/tree/main/tools/ena_upload
